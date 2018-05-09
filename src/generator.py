@@ -43,7 +43,7 @@ def main():
 
     bit = [Point()]         #bit[0] represents the drill point. It will be updated with each timestep and points in the cube too close to it will be removed.
     bit[0].x= time - 1.0
-    bit[0].y= 0
+    bit[0].y= 0.1
     bit[0].z = 1
 
 
@@ -68,6 +68,7 @@ def main():
     msg.scale.z = 0.05   #z axis scale
     msg.color.a = 1.0
     msg.color.r = 1.0
+    msg.color.b = 1.0
 
     #Prep Message 2
     msg2 = Marker()  #Only ever need one message to publish
@@ -86,6 +87,22 @@ def main():
 
     msg2.points.append(bit[0])      #Should just be equals in the end
 
+    #Prep Message 3
+    msg3 = Marker()  #Only ever need one message to publish
+    msg3.header.frame_id = "base"
+    msg3.ns = "ns"
+    msg3.id = 2     #implicit
+    msg3.type = Marker.SPHERE_LIST  #7
+    #msg3.action = Marker.ADD
+
+    msg3.pose.orientation.w = 1.0
+    msg3.scale.x = 0.05   #x axis scale
+    msg3.scale.y = 0.05   #y axis scale
+    msg3.scale.z = 0.05   #z axis scale
+    msg3.color.a = 1.0
+    msg3.color.g = 1.0
+    msg3.color.r = 1.0
+    msg3.color.b = 1.0
 
     i = 0
     x = y = z = 0
@@ -141,7 +158,7 @@ def main():
 
 
     #loop
-    while (not rospy.is_shutdown() and time < 3):
+    while (not rospy.is_shutdown() and time < 4):
         #Stamp Message
         msg.header.stamp = rospy.Time.now()
         msg2.header.stamp = rospy.Time.now()
@@ -151,6 +168,7 @@ def main():
         #publish message
         pub.publish(msg)
         pub.publish(msg2)
+        pub.publish(msg3)
         rate.sleep()
 
 
@@ -158,7 +176,13 @@ def main():
         time += 1./frequency
 
         # Update Drill Position
-        bit[0].x = time - 1.0     # x = t - 1
+        if time < 2.0:
+            bit[0].x += 1.0/frequency     # x = t - 1
+        elif time < 2.8:
+            bit[0].x -= 1.0/frequency
+            bit[0].y += 1.0/frequency
+        else:
+            bit[0].x += 1.0/frequency
 
 
         # Update Cube List
@@ -171,6 +195,8 @@ def main():
 
         for point in templist:
             msg.points.remove(point)
+            msg3.points.append(point)
+
 
 
 
@@ -193,6 +219,20 @@ def distance(point, edge):
     distance = math.sqrt(sqrdsum)
     return distance
 
+
+
+def bit_update(bit, time):
+    '''
+    bit a list of edges in the bit, time the current time in sim
+    '''
+
+    for edge in bit:
+        break
+
+
+
+    # update center point
+    # update other edges around it
 
 
 
