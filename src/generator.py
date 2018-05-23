@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Point
+import bitlib
 import rospy
 import sys
 import math
@@ -13,12 +14,15 @@ TODO
 Publish static sphere list
 ADD a frame publisher?
 '''
+
 '''
 Calculate pixel density
 determine list of points in shape
 drill is a lists of points (or dict of point:size pairs)
 at each time step, check whether each point on the drill is within range of any point in the shape and .remove that point from the shape if so.
 '''
+
+
 
 
 def main():
@@ -41,13 +45,11 @@ def main():
     radius = .1
 
 
-    bit = [Point()]         #bit[0] represents the drill point. It will be updated with each timestep and points in the cube too close to it will be removed.
-    bit[0].x= time - 1.0
-    bit[0].y= 0.1
-    bit[0].z = 1
+
+    bit = bitlib.simpleBit(-1.0, 0.1, 1.0)         #create a bit instance at -1.0, 0.1, 1.0
 
 
-    #init publisher
+    # Init publisher
     pub = rospy.Publisher("visualization_marker", Marker, queue_size=10)
     rospy.init_node('cube_pub')
     rate = rospy.Rate(frequency)  #Publish rate
@@ -70,7 +72,7 @@ def main():
     msg.color.r = 1.0
     msg.color.b = 1.0
 
-    #Prep Message 2
+    #Prep Message 2 for drill bit
     msg2 = Marker()  #Only ever need one message to publish
     msg2.header.frame_id = "base"
     msg2.ns = "ns"
@@ -85,9 +87,9 @@ def main():
     msg2.color.a = 1.0
     msg2.color.g = 1.0
 
-    msg2.points.append(bit[0])      #Should just be equals in the end
+    msg2.points = bit.points      #Should just be equals in the end
 
-    #Prep Message 3
+    #Prep Message 3 for removed points
     msg3 = Marker()  #Only ever need one message to publish
     msg3.header.frame_id = "base"
     msg3.ns = "ns"
@@ -107,6 +109,8 @@ def main():
     i = 0
     x = y = z = 0
 
+
+    # Generate Shape
     # for point in range(0, NUMPTS):
     #     msg.points.append(Point())
     #     msg.points[i].x = i
@@ -162,6 +166,7 @@ def main():
         #Stamp Message
         msg.header.stamp = rospy.Time.now()
         msg2.header.stamp = rospy.Time.now()
+        msg3.header.stamp = rospy.Time.now()
 
 
 
@@ -177,22 +182,23 @@ def main():
 
         # Update Drill Position
         if time < 2.0:
-            bit[0].x += 1.0/frequency     # x = t - 1
+            bit.update_bit(bit.points[0].x + 1.0/frequency, bit.points[0].y + 0.0/frequency, bit.points[0].z + 0.0/frequency) # x=t-1
         elif time < 2.8:
-            bit[0].x -= 1.0/frequency
-            bit[0].y += 1.0/frequency
+            bit.update_bit(bit.points[0].x - 1.0/frequency, bit.points[0].y + 1.0/frequency, bit.points[0].z + 0.0/frequency)
         else:
-            bit[0].x += 1.0/frequency
+            bit.update_bit(bit.points[0].x + 1.0/frequency, bit.points[0].y + 0.0/frequency, bit.points[0].z + 0.0/frequency)
 
 
-        # Update Cube List
+        # TODO Move this function into the bit? The bit knows its own specifications, so if you pass it the object it could remove points and then optionally return the list of points it removed
+        # Make a list of points too close to the drill
         templist = []
         for point in msg.points:
-            for edge in bit:
+            for edge in bit.points:
                 if distance(point, edge) < radius:
                     templist.append(point)
                     break
 
+        # Remove points from the cube and add them to the trash list
         for point in templist:
             msg.points.remove(point)
             msg3.points.append(point)
@@ -218,21 +224,6 @@ def distance(point, edge):
     sqrdsum = math.pow(point.x-edge.x, 2) + math.pow(point.y-edge.y, 2) + math.pow(point.z-edge.z, 2)
     distance = math.sqrt(sqrdsum)
     return distance
-
-
-
-def bit_update(bit, time):
-    '''
-    bit a list of edges in the bit, time the current time in sim
-    '''
-
-    for edge in bit:
-        break
-
-
-
-    # update center point
-    # update other edges around it
 
 
 
