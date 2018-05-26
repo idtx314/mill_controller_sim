@@ -45,8 +45,6 @@ def main(arg):
     timestep = 0.0
     radius = .1
 
-
-
     bit = bitlib.simpleBit(-1.0, 0.1, 1.0)         #create a bit instance at -1.0, 0.1, 1.0
 
 
@@ -55,6 +53,12 @@ def main(arg):
     rospy.init_node('cube_pub')
     rate = rospy.Rate(frequency)  #Publish rate
 
+    # Parse input
+    if(type(arg) != list):
+        arg = preprocess(arg)
+
+    input = arg
+    print input
 
 
     #Prep Message
@@ -226,6 +230,21 @@ def distance(point, edge):
     distance = math.sqrt(sqrdsum)
     return distance
 
+def preprocess(msg):
+    '''
+    Process an input string into a list of lists
+    Ex Input:
+    '[[0.0,1.0,1.0,1.0],[0.1,1,2,1],[0.2,2,2,1]]'
+    '''
+    output = msg.strip('[]')
+    output = output.split('],[')
+
+    for index in range(len(output)):
+        output[index] = output[index].split(',')
+        for subdex in range(len(output[index])):
+            output[index][subdex] = float(output[index][subdex])
+
+    return output
 
 
 
