@@ -11,8 +11,9 @@ import math
 
 '''
 TODO
-Publish static sphere list
-ADD a frame publisher?
+ADD a tf frame publisher?
+Take list of lists or string as input
+use input to set the positions of x,y,z based on time
 '''
 
 '''
@@ -25,7 +26,7 @@ at each time step, check whether each point on the drill is within range of any 
 
 
 
-def main():
+def main(arg):
     frequency = 10
     NUMPTS = 250
     xlength = 1
@@ -233,4 +234,7 @@ def distance(point, edge):
 
 
 if __name__ == '__main__':
-    main()
+    if(len(sys.argv) == 2):
+        main(sys.argv[1])
+    else:
+        print "Usage: inputsim.py <input list>"
