@@ -6,14 +6,9 @@ import rospy
 import sys
 import math
 
-
-#Point()  #Don't declare this here. Any modification of the global would affect every point in the list if I try to use just one.
-
 '''
 TODO
 ADD a tf frame publisher?
-Take list of lists or string as input
-use input to set the positions of x,y,z based on time
 '''
 
 '''
@@ -27,7 +22,7 @@ at each time step, check whether each point on the drill is within range of any 
 
 
 def main(arg):
-    frequency = 10
+    frequency = 100
     NUMPTS = 250
     xlength = 1
     ylength = 1
@@ -61,7 +56,7 @@ def main(arg):
     bit = bitlib.simpleBit(input[0][1],input[0][2],input[0][3])
 
 
-    #Prep Message
+    #Prep message for shape
     msg = Marker()  #Only ever need one message to publish
     msg.header.frame_id = "base"
     msg.ns = "ns"
@@ -146,6 +141,7 @@ def main(arg):
         x += xinc
         y=0
 
+
     # print xpts
     # print msg
     # sys.exit(0)
@@ -168,6 +164,19 @@ def main(arg):
 
     # Follow trajectory
     for vector in input:
+        # Wait
+        while (vector[0] > (rospy.get_time()-t0)):
+
+            #Stamp Message
+            msg.header.stamp = rospy.Time.now()
+            msg2.header.stamp = rospy.Time.now()
+            msg3.header.stamp = rospy.Time.now()
+
+            #publish message
+            pub.publish(msg)
+            pub.publish(msg2)
+            pub.publish(msg3)
+            rate.sleep()
 
         # Update the bit position
         bit.update_bit(vector[1],vector[2],vector[3])
@@ -186,9 +195,6 @@ def main(arg):
             msg.points.remove(point)
             msg3.points.append(point)
 
-        # Wait
-        while (vector[0] > (rospy.get_time()-t0)):
-            pass
 
         #Stamp Message
         msg.header.stamp = rospy.Time.now()
@@ -196,6 +202,7 @@ def main(arg):
         msg3.header.stamp = rospy.Time.now()
 
         #publish message
+        print rospy.get_time()-t0
         pub.publish(msg)
         pub.publish(msg2)
         pub.publish(msg3)
