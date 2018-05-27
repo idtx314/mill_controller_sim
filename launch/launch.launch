@@ -1,0 +1,13 @@
+<launch>
+
+  <arg name="matrix" default="[[0.0,-1.0,-1.0,-1.0],[5.0,-1.0,-1.0,0.0],[10.0,-1.0,0.0,0.0],[15.0,-1.0,0.0,-1.0],[20.0,-1.0,-1.0,-1.0]]"/>
+
+  <node name="transform_broadcaster" pkg="mill_visualizer_v1" type="transform_broadcaster.py"/>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find mill_visualizer_v1)/rviz/rviz.rviz" required="true" />
+
+  <!--
+  <node name="generator" pkg="mill_visualizer_v1" type="generator.py" args="$(arg matrix)"/>
+  -->
+
+</launch>

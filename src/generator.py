@@ -8,7 +8,7 @@ import math
 
 '''
 TODO
-ADD a tf frame publisher?
+Change the point removal function to remove any point within distance of the chord from the previous bit position to the current one.
 '''
 
 '''
@@ -41,10 +41,9 @@ def main(arg):
     radius = .1
 
 
-
     # Init publisher
     pub = rospy.Publisher("visualization_marker", Marker, queue_size=10)
-    rospy.init_node('cube_pub')
+    rospy.init_node('generator')
     rate = rospy.Rate(frequency)  #Publish rate
 
     # Parse input
@@ -202,7 +201,6 @@ def main(arg):
         msg3.header.stamp = rospy.Time.now()
 
         #publish message
-        print rospy.get_time()-t0
         pub.publish(msg)
         pub.publish(msg2)
         pub.publish(msg3)
