@@ -45,7 +45,6 @@ def main(arg):
     timestep = 0.0
     radius = .1
 
-    bit = bitlib.simpleBit(-1.0, 0.1, 1.0)         #create a bit instance at -1.0, 0.1, 1.0
 
 
     # Init publisher
@@ -56,9 +55,10 @@ def main(arg):
     # Parse input
     if(type(arg) != list):
         arg = preprocess(arg)
-
     input = arg
-    print input
+
+    # Create a bit instance at input coordinates
+    bit = bitlib.simpleBit(input[0][1],input[0][2],input[0][3])
 
 
     #Prep Message
@@ -163,36 +163,14 @@ def main(arg):
 #Minimum of 4 points in a layer of a cube
 # Allow user to input lengthof sides and resolution per cm^3. Calculate the appropriate number of points.
 
+    # Set start time in float seconds.
+    t0 = rospy.get_time()
 
+    # Follow trajectory
+    for vector in input:
 
-
-    #loop
-    while (not rospy.is_shutdown() and time < 4):
-        #Stamp Message
-        msg.header.stamp = rospy.Time.now()
-        msg2.header.stamp = rospy.Time.now()
-        msg3.header.stamp = rospy.Time.now()
-
-
-
-        #publish message
-        pub.publish(msg)
-        pub.publish(msg2)
-        pub.publish(msg3)
-        rate.sleep()
-
-
-        # Increment Time
-        time += 1./frequency
-
-        # Update Drill Position
-        if time < 2.0:
-            bit.update_bit(bit.points[0].x + 1.0/frequency, bit.points[0].y + 0.0/frequency, bit.points[0].z + 0.0/frequency) # x=t-1
-        elif time < 2.8:
-            bit.update_bit(bit.points[0].x - 1.0/frequency, bit.points[0].y + 1.0/frequency, bit.points[0].z + 0.0/frequency)
-        else:
-            bit.update_bit(bit.points[0].x + 1.0/frequency, bit.points[0].y + 0.0/frequency, bit.points[0].z + 0.0/frequency)
-
+        # Update the bit position
+        bit.update_bit(vector[1],vector[2],vector[3])
 
         # TODO Move this function into the bit? The bit knows its own specifications, so if you pass it the object it could remove points and then optionally return the list of points it removed
         # Make a list of points too close to the drill
@@ -203,14 +181,24 @@ def main(arg):
                     templist.append(point)
                     break
 
-        # Remove points from the cube and add them to the trash list
+        # Remove points from the cube list and add them to the trash list
         for point in templist:
             msg.points.remove(point)
             msg3.points.append(point)
 
+        # Wait
+        while (vector[0] > (rospy.get_time()-t0)):
+            pass
 
+        #Stamp Message
+        msg.header.stamp = rospy.Time.now()
+        msg2.header.stamp = rospy.Time.now()
+        msg3.header.stamp = rospy.Time.now()
 
-
+        #publish message
+        pub.publish(msg)
+        pub.publish(msg2)
+        pub.publish(msg3)
 
 
 
@@ -236,7 +224,9 @@ def preprocess(msg):
     Ex Input:
     '[[0.0,1.0,1.0,1.0],[0.1,1,2,1],[0.2,2,2,1]]'
     '''
-    output = msg.strip('[]')
+    output = msg.replace('\n','')
+    output = msg.replace(' ','')
+    output = output.strip('[]')
     output = output.split('],[')
 
     for index in range(len(output)):
@@ -256,4 +246,4 @@ if __name__ == '__main__':
     if(len(sys.argv) == 2):
         main(sys.argv[1])
     else:
-        print "Usage: inputsim.py <input list>"
+        print "Usage: generator.py <input list>"
