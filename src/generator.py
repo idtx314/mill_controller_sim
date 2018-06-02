@@ -42,7 +42,7 @@ def main(arg):
     step = 1 # Should be calculated from the number of points and desired size
     time = 0.0
     timestep = 0.0
-    radius = .1
+    radius = 0.1
 
 
     # Init publisher
@@ -164,7 +164,7 @@ def main(arg):
 
     # Set start time in float seconds.
     t0 = rospy.get_time()
-
+    i=0
     # Follow trajectory
     for vector in input:
         # Wait
@@ -191,14 +191,11 @@ def main(arg):
         templist = []
         for point in msg.points:
             for index in range(len(bit.points)):
-                print input.index(vector)
-                print point
-                print old[index]
-                print bit.points[index]
                 if ldistance(point, old[index], bit.points[index]) < radius:
                     templist.append(point)
                     break
-
+        print vector
+        print distance(old[index],bit.points[index])
         # Remove points from the cube list and add them to the trash list
         for point in templist:
             msg.points.remove(point)
@@ -244,21 +241,24 @@ def ldistance(point, start, end):
     # Line equation
     # L = start + u*(end-start)
     # Line length
-    length = math.sqrt(math.pow(end.x-start.x,2.0)+math.pow(end.y-start.y,2.0)+math.pow(end.z-start.z,2.0))
+    length = distance(start,end)
+    print length
     if(length==0.0):
         return distance(point,start)
     # Position of the point on the line closest to point
     u = ((point.x-start.x)*(end.x-start.x) + (point.y-start.y)*(end.y-start.y) + (point.z-start.z)*(end.z-start.z)) / pow(length,2.0)
     # limit u to between 0 and 1
     u = min(max(u,0.0),1.0)
+    print u
     # Intersection point
     intersect = Point(
     x = start.x + u*(end.x-start.x),
     y = start.y + u*(end.y-start.y),
-    z = start.z + u*(end.z-end.z)
+    z = start.z + u*(end.z-start.z)
     )
     # Determine distance between intersection and point
     dist = math.sqrt(math.pow(point.x-intersect.x,2)+math.pow(point.y-intersect.y,2)+math.pow(point.z-intersect.z,2))
+    print intersect
     return dist
 
 def preprocess(msg):
