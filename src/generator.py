@@ -178,6 +178,8 @@ def main(arg):
             pub.publish(msg3)
             rate.sleep()
 
+        # Save old bit position
+        old = bit.points
         # Update the bit position
         bit.update_bit(vector[1],vector[2],vector[3])
 
