@@ -9,9 +9,7 @@ import copy
 
 '''
 TODO
-Change the point removal function to remove any point within distance of the chord from the previous bit position to the current one.
 Add some approximation of output format
-Add a safety to distance finder in case the line segment has length 0
 Set up the loop to not iterate through the start point?
 '''
 
@@ -92,22 +90,22 @@ def main(arg):
 
     msg2.points = bit.points      #Should just be equals in the end
 
-    #Prep Message 3 for removed points
-    msg3 = Marker()  #Only ever need one message to publish
-    msg3.header.frame_id = "base"
-    msg3.ns = "ns"
-    msg3.id = 2     #implicit
-    msg3.type = Marker.SPHERE_LIST  #7
-    #msg3.action = Marker.ADD
+    # #Prep Message 3 for removed points
+    # msg3 = Marker()  #Only ever need one message to publish
+    # msg3.header.frame_id = "base"
+    # msg3.ns = "ns"
+    # msg3.id = 2     #implicit
+    # msg3.type = Marker.SPHERE_LIST  #7
+    # #msg3.action = Marker.ADD
 
-    msg3.pose.orientation.w = 1.0
-    msg3.scale.x = 0.05   #x axis scale
-    msg3.scale.y = 0.05   #y axis scale
-    msg3.scale.z = 0.05   #z axis scale
-    msg3.color.a = 1.0
-    msg3.color.g = 1.0
-    msg3.color.r = 1.0
-    msg3.color.b = 1.0
+    # msg3.pose.orientation.w = 1.0
+    # msg3.scale.x = 0.05   #x axis scale
+    # msg3.scale.y = 0.05   #y axis scale
+    # msg3.scale.z = 0.05   #z axis scale
+    # msg3.color.a = 1.0
+    # msg3.color.g = 1.0
+    # msg3.color.r = 1.0
+    # msg3.color.b = 1.0
 
     i = 0
     x = y = z = 0
@@ -173,12 +171,12 @@ def main(arg):
             #Stamp Message
             msg.header.stamp = rospy.Time.now()
             msg2.header.stamp = rospy.Time.now()
-            msg3.header.stamp = rospy.Time.now()
+            # msg3.header.stamp = rospy.Time.now()
 
             #publish message
             pub.publish(msg)
             pub.publish(msg2)
-            pub.publish(msg3)
+            # pub.publish(msg3)
             rate.sleep()
 
         # Save old bit position
@@ -194,23 +192,21 @@ def main(arg):
                 if ldistance(point, old[index], bit.points[index]) < radius:
                     templist.append(point)
                     break
-        print vector
-        print distance(old[index],bit.points[index])
         # Remove points from the cube list and add them to the trash list
         for point in templist:
             msg.points.remove(point)
-            msg3.points.append(point)
+            # msg3.points.append(point)
 
 
         #Stamp Message
         msg.header.stamp = rospy.Time.now()
         msg2.header.stamp = rospy.Time.now()
-        msg3.header.stamp = rospy.Time.now()
+        # msg3.header.stamp = rospy.Time.now()
 
         #publish message
         pub.publish(msg)
         pub.publish(msg2)
-        pub.publish(msg3)
+        # pub.publish(msg3)
 
 
 
@@ -242,14 +238,12 @@ def ldistance(point, start, end):
     # L = start + u*(end-start)
     # Line length
     length = distance(start,end)
-    print length
     if(length==0.0):
         return distance(point,start)
     # Position of the point on the line closest to point
     u = ((point.x-start.x)*(end.x-start.x) + (point.y-start.y)*(end.y-start.y) + (point.z-start.z)*(end.z-start.z)) / pow(length,2.0)
     # limit u to between 0 and 1
     u = min(max(u,0.0),1.0)
-    print u
     # Intersection point
     intersect = Point(
     x = start.x + u*(end.x-start.x),
@@ -258,7 +252,6 @@ def ldistance(point, start, end):
     )
     # Determine distance between intersection and point
     dist = math.sqrt(math.pow(point.x-intersect.x,2)+math.pow(point.y-intersect.y,2)+math.pow(point.z-intersect.z,2))
-    print intersect
     return dist
 
 def preprocess(msg):
