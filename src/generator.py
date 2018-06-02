@@ -5,11 +5,14 @@ import bitlib
 import rospy
 import sys
 import math
+import copy
 
 '''
 TODO
 Change the point removal function to remove any point within distance of the chord from the previous bit position to the current one.
 Add some approximation of output format
+Add a safety to distance finder in case the line segment has length 0
+Set up the loop to not iterate through the start point?
 '''
 
 '''
@@ -179,7 +182,7 @@ def main(arg):
             rate.sleep()
 
         # Save old bit position
-        old = bit.points
+        old = copy.deepcopy(bit.points)
         # Update the bit position
         bit.update_bit(vector[1],vector[2],vector[3])
 
@@ -187,8 +190,12 @@ def main(arg):
         # Make a list of points too close to the drill
         templist = []
         for point in msg.points:
-            for edge in bit.points:
-                if distance(point, edge) < radius:
+            for index in range(len(bit.points)):
+                print input.index(vector)
+                print point
+                print old[index]
+                print bit.points[index]
+                if ldistance(point, old[index], bit.points[index]) < radius:
                     templist.append(point)
                     break
 
@@ -238,6 +245,8 @@ def ldistance(point, start, end):
     # L = start + u*(end-start)
     # Line length
     length = math.sqrt(math.pow(end.x-start.x,2.0)+math.pow(end.y-start.y,2.0)+math.pow(end.z-start.z,2.0))
+    if(length==0.0):
+        return distance(point,start)
     # Position of the point on the line closest to point
     u = ((point.x-start.x)*(end.x-start.x) + (point.y-start.y)*(end.y-start.y) + (point.z-start.z)*(end.z-start.z)) / pow(length,2.0)
     # limit u to between 0 and 1
