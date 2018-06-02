@@ -9,6 +9,7 @@ import math
 '''
 TODO
 Change the point removal function to remove any point within distance of the chord from the previous bit position to the current one.
+Add some approximation of output format
 '''
 
 '''
@@ -222,6 +223,32 @@ def distance(point, edge):
     sqrdsum = math.pow(point.x-edge.x, 2) + math.pow(point.y-edge.y, 2) + math.pow(point.z-edge.z, 2)
     distance = math.sqrt(sqrdsum)
     return distance
+
+def ldistance(point, start, end):
+    '''
+    Accepts three Point() messages:
+    "point":    the Point() of interest.
+    "start":    the beginning of a line segment.
+    "end":      the end of a line segment.
+    Returns the shortest distance from the Point() of interest to the line segment.
+    '''
+    # Line equation
+    # L = start + u*(end-start)
+    # Line length
+    length = math.sqrt(math.pow(end.x-start.x,2.0)+math.pow(end.y-start.y,2.0)+math.pow(end.z-start.z,2.0))
+    # Position of the point on the line closest to point
+    u = ((point.x-start.x)*(end.x-start.x) + (point.y-start.y)*(end.y-start.y) + (point.z-start.z)*(end.z-start.z)) / pow(length,2.0)
+    # limit u to between 0 and 1
+    u = min(max(u,0.0),1.0)
+    # Intersection point
+    intersect = Point(
+    x = start.x + u*(end.x-start.x),
+    y = start.y + u*(end.y-start.y),
+    z = start.z + u*(end.z-end.z)
+    )
+    # Determine distance between intersection and point
+    dist = math.sqrt(math.pow(point.x-intersect.x,2)+math.pow(point.y-intersect.y,2)+math.pow(point.z-intersect.z,2))
+    return dist
 
 def preprocess(msg):
     '''
